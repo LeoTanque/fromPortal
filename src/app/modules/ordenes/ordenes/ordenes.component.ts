@@ -464,7 +464,7 @@ constructor(private creacionOrdenesService:CreacionOrdenesService, private fb: F
                     U_AlmSal: null,
                    // U_CotVen: 4534,
                     U_CotVen: cotizacion.DocEntry,
-                    U_LinCot: null,
+                    U_LinCot: cotizacion.U_LinCot,
                     U_OrdVen: null,
                     U_LinOrdVen: null,
                     U_StaSol: null,
@@ -484,7 +484,7 @@ constructor(private creacionOrdenesService:CreacionOrdenesService, private fb: F
                     U_HorSerR: 0.0,
                     U_Existencia: cotizacion.U_Existencia,
                     U_NorRep: cotizacion.U_NorRep,
-                    
+                    U_PriceCot: cotizacion.U_PriceCot,
                     
              
            
@@ -696,7 +696,7 @@ constructor(private creacionOrdenesService:CreacionOrdenesService, private fb: F
 }
 
 
-  grabarOrden() {
+  grabarOrden1() {
     // El formulario es válido, procede a enviar los datos al servicio
     const valoresFormulario = this.miFormulario.value;
     const tipoEquipoNombre = this.tipoTrabajoSeleccionado;
@@ -746,6 +746,260 @@ constructor(private creacionOrdenesService:CreacionOrdenesService, private fb: F
       U_Existencia: detalle.U_Existencia,
       U_NorRep: uNorRepValue, // Ajusta según tus necesidades
       //U_NorRep: detalle.U_NorRep
+      U_PriceCot: null,
+    }));
+
+    const elementosFiltrados = this.elementosTablaManoDeObra.filter((manoDeObra, index) => index !== 0 && manoDeObra.Articulo !== '');
+    const fecha = this.fechaSeleccionadatablas;
+
+    const dvpWor2Collection = elementosFiltrados.map((nuevaManoDeObra, index) => ({
+      LineId: index + 1,
+      U_ItemCode: nuevaManoDeObra.U_ItemCode,
+      U_ItemName: nuevaManoDeObra.U_ItemName,
+      U_CodTec: this.codigoTecnicoSeleccionado, 
+      U_NomTec: this.nombreTecnicoSeleccionado,
+      U_FecSer: fecha,
+      U_End: nuevaManoDeObra.U_End ? 'S' : 'N',
+      U_HorSer: nuevaManoDeObra.U_HorSer, 
+      U_HorSerR: nuevaManoDeObra.U_HorSerR, 
+      U_Quantity: nuevaManoDeObra.U_Quantity,
+    }));
+
+    const dvpWor3Collection = this.elementosTablaTerceros.map((terceros, index)=>({
+      LineId: index + 1,
+      U_CardCode: terceros.U_CardCode,
+      U_CardName: terceros.U_CardName,
+      U_DocNumOC: terceros.U_DocNumOC, 
+      U_DocTotal: terceros.U_DocTotal,
+      
+    }))
+
+    const dvpWor4Collection = this.elementosTablaRecomendaciones.map((recomendacion, index)=>({
+      LineId: index + 1,
+      U_ItemCode: recomendacion.U_ItemCode,
+      U_ItemName: recomendacion.U_ItemName,
+      U_Quantity: recomendacion.U_Quantity, 
+     
+      
+    }))
+  
+
+    const DVP_WOR5Collection = this.archivos.map((archivo, index) => ({
+      LineId: index + 1,
+      VisOrder: index,
+      Object: null,
+      LogInst: null,
+      U_Descripcion: archivo.U_Descripcion,
+      U_NomFile: archivo.U_NomFile,
+      U_TipAnex: archivo.U_TipAnex,
+      U_Filebase64: archivo.U_Filebase64, 
+      U_absentry: '10'
+    }));
+
+    const dvpWor7Collection = this.elementosTabla.slice(0, -1).map((elemento, index) => ({
+      LineId: index + 1,
+      U_TipEqu: elemento.U_TipEqu,
+      U_NumEcon: elemento.U_NumEcon,
+      U_NorRep: elemento.U_NReparto,
+      U_Marca: elemento.U_GoodsBrand,
+      U_Modelo: elemento.U_GoodsModel,
+      U_Serie: elemento.U_GoodsSerial,
+      U_OdomAct: elemento.U_OdoAct,
+      U_OdomNue: elemento.U_OdomNue !== undefined ? elemento.U_OdomNue : this.miFormulario.get('U_OdomNue')?.value,
+      //U_OdomNue: elemento.U_OdomNue
+    }));
+  
+    const bodyParaAPI = {
+      DocEntry: 64,
+      DocNum: 64,
+      Series: -1,
+      U_LastPref: null,
+      U_ConFlo: null,
+      U_DocNum: valoresFormulario.selectedSeriesInput,
+      U_Series: valoresFormulario.selectedSeries,
+      U_Prefix: null,
+      U_TipTra: valoresFormulario.tipoTrabajo,
+      U_RefOrdTra: null,
+      U_CardCode: valoresFormulario.U_CardCode,
+      U_CardName: valoresFormulario.U_CardName,
+      U_Address: valoresFormulario.direccion,
+      U_City: valoresFormulario.ciudad,
+      U_Phone: valoresFormulario.telefono,
+      U_OrdCom: null,
+      U_PDFOC: null,
+      U_NomSysOC: null,
+      U_Status: valoresFormulario.estadoSeleccionado,
+      U_DocDate: valoresFormulario.fechaSeleccionada,
+      U_FecEspPar: null,
+      U_Prior: valoresFormulario.prioridadSeleccionada,
+      U_AgVent: valoresFormulario.codigoAgente,
+      U_NomAgVent: valoresFormulario.seleccionAgente, // Ajusta según tu lógica
+      U_PerAut: valoresFormulario.autorizadoPor,
+      U_PerRep: valoresFormulario.reportadoPor,
+      U_CodFall: valoresFormulario.selectedFallos,
+      U_ProRep: valoresFormulario.U_ProRep,
+      U_ComTra: valoresFormulario.textoDiagnostico,
+      U_ComRec: null,
+      U_ComRef: null,
+      U_ComMan: null,
+      U_ComRep: null,
+      U_Com: null,
+      U_ComClosed: null,
+      U_TipEqu: null,
+      U_NumEcon: null,
+      U_Marca: null,
+      U_Modelo: null,
+      U_Serie: null,
+      U_Closed: null,
+      U_Ended: null,
+      U_Odom: null,
+      U_EndRec: null,
+      U_StartD: null,
+      U_EndD: null,
+      U_HasD: null,
+      U_HorasMan: null,
+      U_StartC: null,
+      U_EndC: null,
+      U_HasC: null,
+      U_StartA: null,
+      U_EndA: null,
+      U_HasA: null,
+      U_StartP: null,
+      U_EndP: null,
+      U_HasP: null,
+      U_StartE: null,
+      U_EndE: null,
+      U_HasE: null,
+      U_DocT: null,
+      U_DocR: null,
+      U_DocCot: null,
+      U_DocFac: null,
+      U_EnTras: null,
+      U_FueSer: null,
+      U_NorRep: null,
+      U_TecResp: valoresFormulario.seleccionTecnico,
+      U_Coord: valoresFormulario.seleccionCoordinador,
+      U_ManObrCap: null,
+      DVP_WOR1Collection: detallesCotizacionesParaAPI1,
+  
+     // DVP_WOR2Collection: null,
+      DVP_WOR2Collection: dvpWor2Collection,
+      DVP_WOR3Collection: dvpWor3Collection,
+      DVP_WOR4Collection: dvpWor4Collection,
+      DVP_WOR5Collection: DVP_WOR5Collection,
+      DVP_WOR6Collection: null,
+      DVP_WOR7Collection: dvpWor7Collection,
+     
+    };
+
+    console.log('Valores mandados al api', bodyParaAPI);
+
+    const jsonBody = JSON.stringify(bodyParaAPI);
+  console.log(jsonBody)
+  
+    if (this.miFormulario.valid) {
+      
+      Swal.fire({
+        //title: '¿Está seguro que desea grabar estos datos?',
+        text: '¿Está seguro de grabar esta orden ?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Aceptar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.grabandoDatos = true;
+          this.creacionOrdenesService.grabarOrdenTrabajo(bodyParaAPI).subscribe(
+            (respuesta) => {
+              console.log('Respuesta del servicio:', respuesta);
+              this.grabandoDatos = false;
+              Swal.fire({
+                title: 'Éxito',
+                text: 'OT Grabado con Éxito',
+                icon: 'success'
+              });
+            },
+            (error) => {
+              console.error('Error en la petición:', error);
+              this.grabandoDatos = false;
+              Swal.fire({
+                title: 'Error',
+                text: 'Error al llamar al API',
+                icon: 'error'
+              });
+            }
+          );
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+          Swal.fire('Cancelado', 'No se han grabado los datos', 'info');
+        }
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Debe llenar los campos del formulario',
+      });
+    }
+  }
+
+
+  grabarOrden() {
+    // El formulario es válido, procede a enviar los datos al servicio
+    const valoresFormulario = this.miFormulario.value;
+    const tipoEquipoNombre = this.tipoTrabajoSeleccionado;
+    const uNorRepValue = this.selectedU_NReparto;
+    const almacen = this.almacenSeleccionado;
+    const valoresUOdomNue = this.elementosTabla.map(elemento => elemento.U_OdomNue !== undefined ? elemento.U_OdomNue : null);
+    const valoresUExistencia = this.elementosTablaRefacciones.map((elemento) => elemento.Existencia);
+  
+    const estadoSeleccionado = this.miFormulario.value.estadoSeleccionado;
+    const indexOpcionAnterior = this.estados.findIndex(estado => estado.value === estadoSeleccionado);
+    
+    if (indexOpcionAnterior >= 0) {
+      this.estados.splice(0, indexOpcionAnterior); // Elimina todos los elementos desde el principio hasta indexOpcionAnterior
+      this.estados = [...this.estados];
+      console.log('estados', this.estados);
+    }
+
+    const detallesCotizacionesParaAPI1 = this.elementosTablaRefacciones.map((detalle, index) => ({
+      //LineId: null,
+      LineId: index + 1,
+      U_ItemCode: detalle.U_ItemCode,
+      U_ItemName: detalle.U_ItemName,
+      U_Quantity: detalle.U_Quantity,
+      U_CarCli: detalle.U_CarCli, // Supongo que estos valores son fijos, ajusta según tus necesidades
+      U_CarEmp: detalle.U_CarEmp,
+      U_InCot: null,
+      U_Ins: null,
+      U_StaAlm: null,
+      U_DocEnt: null,
+      U_DocSal: null,
+      U_LinDocSal: null,
+      U_AlmEnt: detalle.Almacen, // Ajusta según tus necesidades
+      U_AlmSal: null,
+     // U_CotVen: 4534,
+      U_CotVen: detalle.DocEntry,// Ajusta según tus necesidades
+      U_LinCot: null,
+      U_OrdVen: null,
+      U_LinOrdVen: null,
+      U_StaSol: null,
+      U_OrdCom: null,
+      U_LinOrdCom: null,
+      U_TipDocSal: null,
+      U_Factura: null,
+      U_LinFactura: null,
+      U_Entregado: null,
+      U_InvIt: null,
+      U_EsSer: null,
+      U_CodTec: null,
+      U_NomTec: null,
+      U_FecSer: null,
+      U_End: null,
+      U_HorSer: 0.0,
+      U_HorSerR: 0.0,
+      U_Existencia: detalle.U_Existencia,
+      U_NorRep: uNorRepValue, // Ajusta según tus necesidades
+      U_PriceCot: null,
     }));
 
     const elementosFiltrados = this.elementosTablaManoDeObra.filter((manoDeObra, index) => index !== 0 && manoDeObra.Articulo !== '');
@@ -941,6 +1195,7 @@ constructor(private creacionOrdenesService:CreacionOrdenesService, private fb: F
     }
   }
   
+  
 
 
   onSubmit(): void {
@@ -985,7 +1240,7 @@ ejecutarMetodoAutorizacion(): void {
 
 
 
-actualizarOrden() {
+actualizarOrden1() {
   if (this.docEntry !== null) {
     const valoresFormulario = this.miFormulario.value;
     const tipoEquipoSeleccionado = this.miFormulario.get('U_TipEqu')?.value;
@@ -1027,7 +1282,7 @@ actualizarOrden() {
       U_AlmSal: null,
      // U_CotVen: 4534,
       U_CotVen: detalle.DocEntry,// Ajusta según tus necesidades
-      U_LinCot: null,
+      U_LinCot: detalle.U_LinCot,
       U_OrdVen: null,
       U_LinOrdVen: null,
       U_StaSol: null,
@@ -1047,6 +1302,7 @@ actualizarOrden() {
       U_HorSerR: 0.0,
       U_Existencia: detalle.U_Existencia,
       U_NorRep: detalle.U_NorRep, // Ajusta según tus necesidades
+      U_PriceCot: detalle.U_PriceCot,
     }));
 
     const elementosFiltrados = this.elementosTablaManoDeObra.filter((manoDeObra, index) => index !== 0 && manoDeObra.Articulo !== '');
@@ -1256,6 +1512,290 @@ actualizarOrden() {
   }
  
 }
+
+actualizarOrden() {
+  if (this.docEntry !== null) {
+    const valoresFormulario = this.miFormulario.value;
+    const tipoEquipoSeleccionado = this.miFormulario.get('U_TipEqu')?.value;
+    const tipoEquipoNombre = tipoEquipoSeleccionado ? tipoEquipoSeleccionado.Code : '';
+    const uNorRepValue = this.selectedU_NReparto;
+    
+   /* const estadoSeleccionado = this.miFormulario.value.estadoSeleccionado;
+  
+   const indexOpcionAnterior = this.estados.findIndex(estado => estado.value === estadoSeleccionado) - 1;
+
+   if (indexOpcionAnterior >= 0) {
+     this.estados.splice(indexOpcionAnterior, 1);
+ 
+     
+     this.estados = [...this.estados]; 
+     console.log('estados', this.estados)
+   }*/
+
+
+   const estadoSeleccionado = this.miFormulario.value.estadoSeleccionado;
+const indexOpcionAnterior = this.estados.findIndex(estado => estado.value === estadoSeleccionado);
+
+if (indexOpcionAnterior >= 0) {
+  this.estados.splice(0, indexOpcionAnterior); // Elimina todos los elementos desde el principio hasta indexOpcionAnterior
+  this.estados = [...this.estados];
+  console.log('estados', this.estados);
+}
+
+   
+   const detallesFiltrados = this.elementosTablaRefacciones.filter((detalle, index) => index !== 0 && detalle.Articulo !== '');
+
+    const detallesCotizacionesParaAPI1 = this.elementosTablaRefacciones.map((detalle, index) => ({
+      
+      //LineId: null,
+      LineId: index + 1,
+      U_ItemCode: detalle.U_ItemCode,
+      U_ItemName: detalle.U_ItemName,
+      U_Quantity: detalle.U_Quantity,
+      U_CarCli: detalle.U_CarCli,
+      U_CarEmp:detalle.U_CarEmp,
+      U_InCot: null,
+      U_Ins: null,
+      U_StaAlm: null,
+      U_DocEnt: null,
+      U_DocSal: null,
+      U_LinDocSal: null,
+      U_AlmEnt: detalle.Almacen, // Ajusta según tus necesidades
+      U_AlmSal: null,
+     // U_CotVen: 4534,
+      U_CotVen: detalle.DocEntry,// Ajusta según tus necesidades
+      U_LinCot: detalle.U_LinCot,
+      U_OrdVen: null,
+      U_LinOrdVen: null,
+      U_StaSol: null,
+      U_OrdCom: null,
+      U_LinOrdCom: null,
+      U_TipDocSal: null,
+      U_Factura: null,
+      U_LinFactura: null,
+      U_Entregado: null,
+      U_InvIt: null,
+      U_EsSer: null,
+      U_CodTec: null,
+      U_NomTec: null,
+      U_FecSer: null,
+      U_End: null,
+      U_HorSer: 0.0,
+      U_HorSerR: 0.0,
+      U_Existencia: detalle.U_Existencia,
+      U_NorRep: detalle.U_NorRep, 
+      U_PriceCot: detalle.U_PriceCot,
+    }));
+
+    const elementosFiltrados = this.elementosTablaManoDeObra.filter((manoDeObra, index) => index !== 0 && manoDeObra.Articulo !== '');
+    const fecha = this.fechaSeleccionadatablas || new Date();;
+
+    const dvpWor2Collection = elementosFiltrados.map((nuevaManoDeObra, index) => ({
+      LineId: index + 1,
+      U_ItemCode: nuevaManoDeObra.U_ItemCode,
+      U_ItemName: nuevaManoDeObra.U_ItemName,
+      U_CodTec: this.codigoTecnicoSeleccionado, 
+      U_NomTec: this.nombreTecnicoSeleccionado,
+      U_FecSer: fecha,
+      U_End: nuevaManoDeObra.U_End ? 'S' : 'N',
+      U_HorSer: nuevaManoDeObra.U_HorSer, 
+      U_HorSerR: nuevaManoDeObra.U_HorSerR, 
+      U_Quantity: nuevaManoDeObra.U_Quantity,
+    }));
+
+    const dvpWor3Collection = this.elementosTablaTerceros.map((terceros, index)=>({
+      LineId: index + 1,
+      U_CardCode: terceros.U_CardCode,
+      U_CardName: terceros.U_CardName,
+      U_DocNumOC: terceros.U_DocNumOC, 
+      U_DocTotal: terceros.U_DocTotal,
+      
+    }))
+
+
+
+    const dvpWor4Collection = this.elementosTablaRecomendaciones.map((recomendacion, index)=>({
+      LineId: index + 1,
+      U_ItemCode: recomendacion.U_ItemCode,
+      U_ItemName: recomendacion.U_ItemName,
+      U_Quantity: recomendacion.U_Quantity, 
+     
+      
+    }))
+  
+
+
+    const DVP_WOR5Collection = this.archivos.map((archivo, index) => ({
+      LineId: index + 1,
+      VisOrder: index,
+      Object: null,
+      LogInst: null,
+      U_Descripcion: archivo.U_Descripcion,
+      U_NomFile: archivo.U_NomFile,
+      U_TipAnex: archivo.U_TipAnex,
+      U_Filebase64: archivo.U_Filebase64,
+      //U_absentry: '10'
+    }));
+
+    const filasNoVacias = this.elementosTabla.filter(fila => fila.U_TipEqu !== null);
+    const dvpWor7Collection = filasNoVacias.map((fila, index) => ({
+      LineId: index + 1,
+      U_TipEqu: fila.U_TipEqu,
+      U_NumEcon: fila.U_NumEcon,
+      U_NorRep: fila.U_NReparto,
+      U_Marca: fila.U_GoodsBrand,
+      U_Modelo: fila.U_GoodsModel,
+      U_Serie: fila.U_GoodsSerial,
+      U_OdomAct: fila.U_OdoAct,
+      U_OdomNue: fila.U_OdomNue !== undefined ? fila.U_OdomNue : null,
+    }));
+
+/*
+    const estadoSeleccionadoA = valoresFormulario.estadoSeleccionado;
+    
+    // Comprobar si el estado seleccionado es 'Autorización'
+    if (estadoSeleccionadoA === 'A') {
+      console.log('Estado en Autorización jhgh');
+      
+    } else {
+      console.log('Estado no es Autorización');
+    }*/
+    
+    const bodyParaActualizacion = {
+      DocEntry: this.docEntry,
+      DocNum: this.docEntry,
+      Series: -1,
+      U_LastPref: null,
+      U_ConFlo: null,
+      U_DocNum: valoresFormulario.selectedSeriesInput,
+      U_Series: valoresFormulario.selectedSeries,
+      U_Prefix: null,
+      U_TipTra: valoresFormulario.tipoTrabajo,
+      U_RefOrdTra: null,
+      U_CardCode: valoresFormulario.U_CardCode,
+      U_CardName: valoresFormulario.U_CardName,
+      U_Address: valoresFormulario.direccion,
+      U_City: valoresFormulario.ciudad,
+      U_Phone: valoresFormulario.telefono,
+      U_OrdCom: null,
+      U_PDFOC: null,
+      U_NomSysOC: null,
+      U_Status: valoresFormulario.estadoSeleccionado,
+      U_DocDate: valoresFormulario.fechaSeleccionada,
+      U_FecEspPar: null,
+      U_Prior: valoresFormulario.prioridadSeleccionada,
+      U_AgVent: valoresFormulario.codigoAgente,
+      U_NomAgVent: valoresFormulario.seleccionAgente, 
+      //U_AgVent: valoresFormulario.codigoAgente,
+      U_PerAut: valoresFormulario.autorizadoPor,
+      U_PerRep: valoresFormulario.reportadoPor,
+      U_CodFall: valoresFormulario.selectedFallos,
+      U_ProRep: valoresFormulario.U_ProRep,
+      U_ComTra: valoresFormulario.textoDiagnostico,
+      U_ComRec: null,
+      U_ComRef: null,
+      U_ComMan: null,
+      U_ComRep: null,
+      U_Com: null,
+      U_ComClosed: null,
+      U_TipEqu: null,
+      U_NumEcon: null,
+      U_Marca: null,
+      U_Modelo: null,
+      U_Serie: null,
+      U_Closed: null,
+      U_Ended: null,
+      U_Odom: null,
+      U_EndRec: null,
+      U_StartD: null,
+      U_EndD: null,
+      U_HasD: null,
+      U_HorasMan: null,
+      U_StartC: null,
+      U_EndC: null,
+      U_HasC: null,
+      U_StartA: null,
+      U_EndA: null,
+      U_HasA: null,
+      U_StartP: null,
+      U_EndP: null,
+      U_HasP: null,
+      U_StartE: null,
+      U_EndE: null,
+      U_HasE: null,
+      U_DocT: null,
+      U_DocR: null,
+      U_DocCot: null,
+      U_DocFac: null,
+      U_EnTras: null,
+      U_FueSer: null,
+      U_NorRep: null,
+      U_TecResp: valoresFormulario.seleccionTecnico,
+      U_Coord: valoresFormulario.seleccionCoordinador,
+      U_ManObrCap: null,
+      DVP_WOR1Collection: detallesCotizacionesParaAPI1,
+      DVP_WOR2Collection: dvpWor2Collection,
+      DVP_WOR3Collection: dvpWor3Collection,
+      DVP_WOR4Collection: dvpWor4Collection,
+      DVP_WOR5Collection: DVP_WOR5Collection,
+      DVP_WOR6Collection: null,
+      DVP_WOR7Collection: dvpWor7Collection,
+
+    };
+    
+
+    console.log('body para actualizacion', bodyParaActualizacion)
+    const jsonBody = JSON.stringify(bodyParaActualizacion);
+    console.log(jsonBody)
+
+   
+
+    // Mostrar SweetAlert con la pregunta antes de actualizar la orden
+    Swal.fire({
+     // title: '¿Desea actualizar esta orden?',
+      text: '¿Está seguro que desea actualizar esta orden?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Actualizar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.grabandoDatos = true;
+        // Usuario confirmó la actualización, llamar al servicio para actualizar la orden
+        this.creacionOrdenesService.updateOrden(bodyParaActualizacion).subscribe(
+          response => {
+            console.log('Respuesta del API al actualizar la orden', response);
+            this.grabandoDatos = false;
+            // Mostrar mensaje de éxito
+            Swal.fire({
+              title: 'Éxito',
+              text: 'OT actualizada con éxito',
+              icon: 'success'
+            });
+          },
+          error => {
+            console.error('Error al actualizar la orden', error);
+            this.grabandoDatos = false;
+            // Mostrar mensaje de error
+            Swal.fire({
+              title: 'Error',
+              text: 'Error al actualizar la orden',
+              icon: 'error'
+            });
+          }
+        );
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        // Usuario canceló la actualización, mostrar mensaje informativo
+        Swal.fire('Cancelado', 'La orden no se ha actualizado', 'info');
+      }
+    });
+  } else {
+    console.error('No se pudo obtener un valor válido de DocEntry');
+    // Puedes manejar el caso en el que no se pueda obtener DocEntry
+  }
+ 
+}
+
   
 /*
 onFileSelected(event: any) {
@@ -2092,6 +2632,8 @@ onrowDobleClickcotizacion1(cotizacion: any) {
                     U_NorRep: this.selectedU_NReparto,
                     Almacen: cotizacion.Almacen,
                     U_Existencia: '',
+                    U_PriceCot: detalle.Price,
+                    U_LinCot: detalle.LineNum,
                     //Existencia: detalle.stocktotal,
                     original: false,
                     cotizacionAsociada: true,
